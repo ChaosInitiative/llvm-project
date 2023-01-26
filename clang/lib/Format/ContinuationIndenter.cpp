@@ -274,6 +274,10 @@ LineState ContinuationIndenter::getInitialState(unsigned FirstIndent,
     CurrentState.AlignColons = false;
   }
 
+  if (State.NextToken->is(TT_MacroBlockBegin))
+    Style.ContinuationIndentWidth = std::min(0U, Style.ContinuationIndentWidth - Style.IndentWidth);
+  else if (State.NextToken->is(TT_MacroBlockEnd))
+    Style.ContinuationIndentWidth += Style.IndentWidth;
   // The first token has already been indented and thus consumed.
   moveStateToNextToken(State, DryRun, /*Newline=*/false);
   return State;
