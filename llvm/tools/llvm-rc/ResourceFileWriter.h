@@ -58,6 +58,7 @@ public:
   Error visitVersionInfoResource(const RCResource *) override;
   Error visitStringTableResource(const RCResource *) override;
   Error visitUserDefinedResource(const RCResource *) override;
+  Error visitToolbarResource(const RCResource *) override;
 
   Error visitCaptionStmt(const CaptionStmt *) override;
   Error visitCharacteristicsStmt(const CharacteristicsStmt *) override;
@@ -162,6 +163,9 @@ private:
 
   // User defined resource
   Error writeUserDefinedBody(const RCResource *);
+
+  // Toolbar resource
+  Error writeToolbar(const RCResource *);
 
   // VersionInfoResource
   Error writeVersionInfoBody(const RCResource *);

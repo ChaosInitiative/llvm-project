@@ -84,6 +84,8 @@ RCParser::ParseType RCParser::parseSingleResource() {
     Result = parseUserDefinedResource(RkRcData);
   else if (TypeToken->equalsLower("VERSIONINFO"))
     Result = parseVersionInfoResource();
+  else if (TypeToken->equalsLower("TOOLBAR"))
+    Result = parseToolbarResource();
   else
     Result = parseUserDefinedResource(*TypeToken);
 
@@ -528,6 +530,29 @@ RCParser::ParseType RCParser::parseVersionInfoResource() {
   ASSIGN_OR_RETURN(BlockResult, parseVersionInfoBlockContents(StringRef()));
   return std::make_unique<VersionInfoResource>(
       std::move(**BlockResult), std::move(*FixedResult), MemoryFlags);
+}
+
+RCParser::ParseType RCParser::parseToolbarResource() {
+  ASSIGN_OR_RETURN(Args, readIntsWithCommas(2, 2));
+
+  RETURN_IF_ERROR(consumeType(Kind::BlockBegin));
+  std::vector<uint16_t> Data;
+
+  while (!consumeOptionalType(Kind::BlockEnd)) {
+    ASSIGN_OR_RETURN(Type, readIdentifier());
+    if (Type->equals_insensitive("BUTTON")) {
+      ASSIGN_OR_RETURN(Button, readInt());
+      assert(*Button < UINT16_MAX);
+      Data.push_back(*Button);
+    } else if (Type->equals_insensitive("SEPARATOR"))
+      Data.push_back(0);
+    else
+      return getExpectedError("BUTTON follwed by number or SEPARATOR", true);
+  }
+
+  return std::make_unique<ToolbarResource>(
+      (*Args)[0], (*Args)[1], std::move(Data),
+      ToolbarResource::getDefaultMemoryFlags()); // Should this be also parsed?
 }
 
 Expected<Control> RCParser::parseControl() {

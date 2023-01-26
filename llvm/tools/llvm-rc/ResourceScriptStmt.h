@@ -185,6 +185,7 @@ enum ResourceKind {
   RkIconGroup = 14,
   RkVersionInfo = 16,
   RkHTML = 23,
+  RkToolbar = 241,
 
   // These kinds don't have assigned type IDs (they might be the resources
   // of invalid kind, expand to many resource structures in .res files,
@@ -843,6 +844,30 @@ public:
   ResourceKind getKind() const override { return RkVersionInfo; }
   static bool classof(const RCResource *Res) {
     return Res->getKind() == RkVersionInfo;
+  }
+};
+
+class ToolbarResource : public RCResource {
+public:
+  uint16_t Width;
+  uint16_t Height;
+  std::vector<uint16_t> Items;
+
+  ToolbarResource(uint16_t Width, uint16_t Height,
+                  std::vector<uint16_t> &&Items, uint16_t Flags)
+      : RCResource(Flags), Width(Width), Height(Height),
+        Items(std::move(Items)){}
+
+  raw_ostream &log(raw_ostream &) const override;
+  IntOrString getResourceType() const override { return RkToolbar; }
+  static uint16_t getDefaultMemoryFlags() { return MfMoveable | MfPure; } // ???
+  Twine getResourceTypeName() const override { return "TOOLBAR"; }
+  Error visit(Visitor *V) const override {
+    return V->visitToolbarResource(this);
+  }
+  ResourceKind getKind() const override { return RkToolbar; }
+  static bool classof(const RCResource *Res) {
+    return Res->getKind() == RkToolbar;
   }
 };
 

@@ -508,6 +508,10 @@ Error ResourceFileWriter::visitVersionInfoResource(const RCResource *Res) {
   return writeResource(Res, &ResourceFileWriter::writeVersionInfoBody);
 }
 
+Error ResourceFileWriter::visitToolbarResource(const RCResource *Res) {
+  return writeResource(Res, &ResourceFileWriter::writeToolbar);
+}
+
 Error ResourceFileWriter::visitCharacteristicsStmt(
     const CharacteristicsStmt *Stmt) {
   ObjectData.Characteristics = Stmt->Value;
@@ -1508,11 +1512,32 @@ Error ResourceFileWriter::writeVersionInfoBody(const RCResource *Base) {
   return Error::success();
 }
 
+Error ResourceFileWriter::writeToolbar(const RCResource *Base) {
+  auto *Res = cast<ToolbarResource>(Base);
+  assert(Res->Items.size() < INT16_MAX);
+
+  writeInt<uint16_t>(1); // version
+  writeInt(Res->Width);
+  writeInt(Res->Height);
+  writeInt<uint16_t>(Res->Items.size());
+  for (uint16_t Item : Res->Items)
+    writeInt(Item);
+
+  return Error::success();
+}
+
 Expected<std::unique_ptr<MemoryBuffer>>
-ResourceFileWriter::loadFile(StringRef File) const {
+ResourceFileWriter::loadFile(StringRef FileI) const {
   SmallString<128> Path;
   SmallString<128> Cwd;
   std::unique_ptr<MemoryBuffer> Result;
+
+#ifdef LLVM_ON_UNIX
+  SmallString<64> File;
+  sys::path::native(FileI, File);
+#else
+  StringRef File = FileI;
+#endif
 
   // 0. The file path is absolute or has a root directory, so we shouldn't
   // try to append it on top of other base directories. (An absolute path
@@ -1554,6 +1579,11 @@ ResourceFileWriter::loadFile(StringRef File) const {
   }
 
   if (!Params.NoInclude) {
+#ifdef LLVM_ON_UNIX // If we are on linux, try also using ; since clang-cl only uses it
+    if (auto Result = llvm::sys::Process::FindInEnvPath("INCLUDE", File, ';'))
+      return errorOrToExpected(MemoryBuffer::getFile(
+          *Result, /*IsText=*/false, /*RequiresNullTerminator=*/false));
+#endif
     if (auto Result = llvm::sys::Process::FindInEnvPath("INCLUDE", File))
       return errorOrToExpected(MemoryBuffer::getFile(
           *Result, /*IsText=*/false, /*RequiresNullTerminator=*/false));
