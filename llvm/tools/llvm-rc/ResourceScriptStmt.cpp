@@ -248,6 +248,18 @@ raw_ostream &VersionInfoResource::log(raw_ostream &OS) const {
   return MainBlock.log(OS);
 }
 
+raw_ostream &ToolbarResource::log(raw_ostream &OS) const {
+  OS << "Toolbar (" << ResName << "):\n";
+  OS << "  Width: " << Width << "\n";
+  OS << "  Height: " << Width << "\n";
+  OS << "  Items:";
+  for (uint16_t Item : Items)
+    OS << " " << Item;
+  OS << "\n";
+
+  return OS;
+}
+
 raw_ostream &UserDefinedResource::log(raw_ostream &OS) const {
   OS << "User-defined (type: " << Type << ", name: " << ResName << "): ";
   if (IsFileResource)

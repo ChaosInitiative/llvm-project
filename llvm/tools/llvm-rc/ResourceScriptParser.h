@@ -146,6 +146,7 @@ private:
   ParseType parseStringTableResource();
   ParseType parseUserDefinedResource(IntOrString Type);
   ParseType parseVersionInfoResource();
+  ParseType parseToolbarResource();
 
   // Helper DIALOG parser - a single control.
   Expected<Control> parseControl();
