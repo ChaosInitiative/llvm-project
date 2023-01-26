@@ -32,6 +32,7 @@
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/Path.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/ConvertUTF.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
@@ -177,9 +178,25 @@ ContentCache::getBufferOrNone(DiagnosticsEngine &Diag, FileManager &FM,
   const char *InvalidBOM = getInvalidBOM(BufStr);
 
   if (InvalidBOM) {
-    Diag.Report(Loc, diag::err_unsupported_bom)
-      << InvalidBOM << ContentsEntry->getName();
-    return std::nullopt;
+    constexpr llvm::StringLiteral utf16A("UTF-16 (LE)");
+    constexpr llvm::StringLiteral utf16B("UTF-16 (BE)");
+    constexpr llvm::StringLiteral utf32A("UTF-32 (LE)");
+    constexpr llvm::StringLiteral utf32B("UTF-32 (BE)");
+    std::string utf8;
+    if ((utf16A == InvalidBOM || utf16B == InvalidBOM) &&
+        llvm::convertUTF16ToUTF8String({BufStr.data(), BufStr.size()}, utf8)) {
+      Buffer =
+          llvm::MemoryBuffer::getMemBufferCopy(utf8, ContentsEntry->getName());
+    } else if ((utf32A == InvalidBOM || utf32B == InvalidBOM) &&
+               llvm::convertUTF32ToUTF8String({BufStr.data(), BufStr.size()},
+                                              utf8)) {
+      Buffer =
+          llvm::MemoryBuffer::getMemBufferCopy(utf8, ContentsEntry->getName());
+    } else {
+      Diag.Report(Loc, diag::err_unsupported_bom)
+          << InvalidBOM << ContentsEntry->getName();
+      return std::nullopt;
+    }
   }
 
   // Buffer has been validated.
