@@ -272,7 +272,7 @@ void visualstudio::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   StringRef Linker =
       Args.getLastArgValue(options::OPT_fuse_ld_EQ, CLANG_DEFAULT_LINKER);
   if (Linker.empty())
-    Linker = "link";
+    Linker = "lld-link";
   // We need to translate 'lld' into 'lld-link'.
   else if (Linker.equals_insensitive("lld"))
     Linker = "lld-link";
