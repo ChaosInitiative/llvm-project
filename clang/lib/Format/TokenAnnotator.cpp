@@ -1700,7 +1700,7 @@ private:
             TT_RecordLBrace, TT_StructLBrace, TT_UnionLBrace, TT_RequiresClause,
             TT_RequiresClauseInARequiresExpression, TT_RequiresExpression,
             TT_RequiresExpressionLParen, TT_RequiresExpressionLBrace,
-            TT_BracedListLBrace)) {
+            TT_BracedListLBrace, TT_MacroBlockBegin, TT_MacroBlockEnd)) {
       CurrentToken->setType(TT_Unknown);
     }
     CurrentToken->Role.reset();
