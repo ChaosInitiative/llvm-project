@@ -408,6 +408,20 @@ bool getWindowsSDKDir(vfs::FileSystem &VFS, std::optional<StringRef> WinSdkDir,
 
   // FIXME: Try env vars (%WindowsSdkDir%, %UCRTVersion%) before going to
   // registry.
+  if (auto UniversalCRTSdkDir =
+          llvm::sys::Process::GetEnv("UniversalCrtSdkDir")) {
+    Major = 10;
+    Path = std::move(*UniversalCRTSdkDir);
+    if (auto UCRTVersionV = llvm::sys::Process::GetEnv("UCRTVersion")) {
+      WindowsSDKIncludeVersion = std::move(*UCRTVersionV);
+      WindowsSDKLibVersion = WindowsSDKIncludeVersion;
+      return true;
+    }
+    if (!getWindows10SDKVersionFromPath(VFS, Path, WindowsSDKIncludeVersion))
+        return false;
+    WindowsSDKLibVersion = WindowsSDKIncludeVersion;
+    return true;
+  }
 
   // Try the Windows registry.
   std::string RegistrySDKVersion;
@@ -463,6 +477,16 @@ bool getUniversalCRTSdkDir(vfs::FileSystem &VFS,
 
   // FIXME: Try env vars (%UniversalCRTSdkDir%, %UCRTVersion%) before going to
   // registry.
+  if (auto UniversalCRTSdkDir =
+          llvm::sys::Process::GetEnv("UniversalCrtSdkDir")) {
+    if (auto UCRTVersionV = llvm::sys::Process::GetEnv("UCRTVersion")) {
+      Path = std::move(*UniversalCRTSdkDir);
+      UCRTVersion = std::move(*UCRTVersionV);
+      return true;
+    }
+    Path = std::move(*UniversalCRTSdkDir);
+    return getWindows10SDKVersionFromPath(VFS, Path, UCRTVersion);
+  }
 
   // vcvarsqueryregistry.bat for Visual Studio 2015 queries the registry
   // for the specific key "KitsRoot10". So do we.
