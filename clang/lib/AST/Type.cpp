@@ -4719,6 +4719,36 @@ QualType::DestructionKind QualType::isDestructedTypeImpl(QualType type) {
   return DK_none;
 }
 
+bool QualType::hasTypeDeletedDestructorImpl(QualType type) {
+  switch (type.getObjCLifetime()) {
+  case Qualifiers::OCL_None:
+  case Qualifiers::OCL_ExplicitNone:
+  case Qualifiers::OCL_Autoreleasing:
+    break;
+
+  case Qualifiers::OCL_Strong:
+    return false;
+  case Qualifiers::OCL_Weak:
+    return false;
+  }
+
+  if (const auto *RT =
+          type->getBaseElementTypeUnsafe()->getAs<RecordType>()) {
+    const RecordDecl *RD = RT->getDecl();
+    if (const auto *CXXRD = dyn_cast<CXXRecordDecl>(RD)) {
+      /// Check if this is a C++ object with a deleted destructor.
+      if (!CXXRD->hasDefinition())
+        return false;
+      auto destructor = CXXRD->getDestructor();
+      if (!destructor)
+        return CXXRD->defaultedDestructorIsDeleted();
+      return destructor->isDeleted();
+    }
+  }
+
+  return false;
+}
+
 CXXRecordDecl *MemberPointerType::getMostRecentCXXRecordDecl() const {
   return getClass()->getAsCXXRecordDecl()->getMostRecentNonInjectedDecl();
 }

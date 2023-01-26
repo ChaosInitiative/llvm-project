@@ -1319,6 +1319,9 @@ public:
   DestructionKind isDestructedType() const {
     return isDestructedTypeImpl(*this);
   }
+  bool hasDeletedDestructor() const {
+    return hasTypeDeletedDestructorImpl(*this);
+  }
 
   /// Check if this is or contains a C union that is non-trivial to
   /// default-initialize, which is a union that has a member that is non-trivial
@@ -1408,6 +1411,7 @@ private:
                                                  const ASTContext &C);
   static QualType IgnoreParens(QualType T);
   static DestructionKind isDestructedTypeImpl(QualType type);
+  static bool hasTypeDeletedDestructorImpl(QualType type);
 
   /// Check if \param RD is or contains a non-trivial C union.
   static bool hasNonTrivialToPrimitiveDefaultInitializeCUnion(const RecordDecl *RD);

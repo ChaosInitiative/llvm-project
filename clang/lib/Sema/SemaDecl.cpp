@@ -18942,7 +18942,8 @@ void Sema::ActOnFields(Scope *S, SourceLocation RecLoc, Decl *EnclosingDecl,
         // FIXME: GCC allows this. We should probably either implicitly delete
         // the destructor of the containing class, or just allow this.
         QualType BaseElem = Context.getBaseElementType(FD->getType());
-        if (!BaseElem->isDependentType() && BaseElem.isDestructedType()) {
+        if (!BaseElem->isDependentType() &&
+            (BaseElem.isDestructedType() && !BaseElem.hasDeletedDestructor())) {
           Diag(FD->getLocation(), diag::err_flexible_array_has_nontrivial_dtor)
             << FD->getDeclName() << FD->getType();
           FD->setInvalidDecl();
