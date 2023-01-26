@@ -388,10 +388,10 @@ void PDBLinker::translateIdSymbols(MutableArrayRef<uint8_t> &recordData,
         }
       }
       if (newType == TypeIndex(SimpleTypeKind::NotTranslated)) {
-        warn(formatv("procedure symbol record for `{0}` in {1} refers to PDB "
-                     "item index {2:X} which is not a valid function ID record",
-                     getSymbolName(CVSymbol(recordData)),
-                     source->file->getName(), ti->getIndex()));
+        // warn(formatv("procedure symbol record for `{0}` in {1} refers to PDB "
+                     // "item index {2:X} which is not a valid function ID record",
+                     // getSymbolName(CVSymbol(recordData)),
+                     // source->file->getName(), ti->getIndex()));
       }
       *ti = newType;
     }
