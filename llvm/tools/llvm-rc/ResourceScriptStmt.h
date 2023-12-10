@@ -185,6 +185,7 @@ enum ResourceKind {
   RkIconGroup = 14,
   RkVersionInfo = 16,
   RkHTML = 23,
+  RkDlgInit = 240,
   RkToolbar = 241,
 
   // These kinds don't have assigned type IDs (they might be the resources

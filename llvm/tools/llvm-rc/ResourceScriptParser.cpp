@@ -82,6 +82,8 @@ RCParser::ParseType RCParser::parseSingleResource() {
     Result = parseMenuResource();
   else if (TypeToken->equalsLower("RCDATA"))
     Result = parseUserDefinedResource(RkRcData);
+  else if (TypeToken->equalsLower("DLGINIT"))
+    Result = parseUserDefinedResource(RkDlgInit);
   else if (TypeToken->equalsLower("VERSIONINFO"))
     Result = parseVersionInfoResource();
   else if (TypeToken->equalsLower("TOOLBAR"))
